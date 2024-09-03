@@ -1,13 +1,12 @@
 ---
-
 name: Build and deploy Collection on Ansible Galaxy
 on:
   release:
     types:
       - published
-      - created
     tags:
       - 'v*'
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

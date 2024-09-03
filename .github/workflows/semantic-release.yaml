@@ -1,5 +1,4 @@
 ---
-
 # runs on each push to main and is responsible for creating new tags/releases
 name: Create Semantic Release
 
@@ -23,5 +22,4 @@ jobs:
         uses: go-semantic-release/action@v1.23
         with:
           allow-initial-development-versions: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.ADFINISBOT_GITHUB_TOKEN }}
