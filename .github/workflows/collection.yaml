@@ -9,19 +9,6 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository and submodules
-        uses: actions/checkout@v4
-        with:
-          submodules: 'true'
-
-      - name: Set version in galaxy.yml
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          sed -re "s/^version:.*$/version: ${VERSION}/" -i galaxy.yml
-
-      - name: Upload collection to Ansible Galaxy
-        uses: ansible/ansible-publish-action@v1.0.0
-        with:
-          api_key: ${{ secrets.GALAXY_API_KEY }}
+    uses: adfinis/github-workflows-bareos/.github/workflows/ansible-collection.yaml@v0.1.0
+      secrets:
+        galaxy_api_key: ${{ secrets.GALAXY_API_KEY }}
