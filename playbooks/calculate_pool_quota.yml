@@ -1,0 +1,31 @@
+---
+
+- name: Loop over all pools and calculate maximum disk quota
+  hosts: localhost
+  become: false
+  gather_facts: false
+  check_mode: true
+  tasks:
+    - name: Make sure necessary Pool values are set 
+      ansible.builtin.assert:
+        quiet: true
+        that:
+          - item is defined
+          - item is iterable
+          - item.maximum_volume_bytes is defined
+          - item.maximum_volumes is defined
+        success_msg: Necessary variables are set.
+        fail_msg: >-
+          It looks like no limits are defined for the pool {{ item.name}}!
+          Make sure maximum_volume_bytes and maximum_volumes are set.
+      loop: "{{ bareos_dir_pools }}"
+
+    - name: Loop over pools to calculta quota
+      ansible.builtin.set_fact:
+        _quota: "{{ _quota | default(0) | int + item.maximum_volume_bytes | int * item.maximum_volumes | int }}"
+      loop: "{{ bareos_dir_pools }}"
+
+    - name: Print total customer quota
+      ansible.builtin.debug:
+        msg: >-
+          Total Pool quota is {{ ( _quota | int / 1024 / 1024 / 1024 ) | int }} GB. 
