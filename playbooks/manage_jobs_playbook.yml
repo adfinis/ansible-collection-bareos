@@ -16,7 +16,7 @@
       ansible.builtin.set_fact:
         _job_list: >-
           {{ _job_list + [{
-            'name': item+'_'+job_defaults.name,
+            'name': job_defaults.name+'_'+item,
             'client': item,
             'pool': job_defaults.pool,
             'type': job_defaults.type,
@@ -27,8 +27,9 @@
           }}
       loop: "{{ groups['filedaemons'] }}"
       tags: manage_jobs
-      when:  # if job(s) are defined in host_vars, standards will be skipped
-        - hostvars[item].bareos_fd_jobs is undefined 
+      # if job(s) are defined in host_vars or group_vars, standards will be skipped
+      when:
+        - hostvars[item].bareos_fd_jobs is undefined
 
     - name: Add dedicated jobs defined in host_vars
       ansible.builtin.set_fact:
@@ -36,8 +37,9 @@
           {{ _job_list + hostvars[item].bareos_fd_jobs }}
       loop: "{{ groups['filedaemons'] }}"
       tags: manage_jobs
+      # use job(s) from host_vars or group_vars instead
       when:
-        - hostvars[item].bareos_fd_jobs is defined  # use job(s) from host_vars instead
+        - hostvars[item].bareos_fd_jobs is defined
 
     - name: Register job list
       ansible.builtin.set_fact:
