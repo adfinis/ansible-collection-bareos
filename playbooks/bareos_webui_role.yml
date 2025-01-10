@@ -1,0 +1,7 @@
+---
+
+- name: Run bareos_webui role for webuis
+  hosts: webuis
+  become: true
+  roles:
+    - role: bareos_webui

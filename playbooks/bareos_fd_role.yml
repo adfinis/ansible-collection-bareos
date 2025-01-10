@@ -1,0 +1,7 @@
+---
+
+- name: Run bareos_fd role for filedaemons
+  hosts: filedaemons
+  become: true
+  roles:
+    - role: bareos_fd

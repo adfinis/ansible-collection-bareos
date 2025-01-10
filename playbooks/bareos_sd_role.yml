@@ -1,0 +1,7 @@
+---
+
+- name: Run bareos_sd role for storagedaemons
+  hosts: storagedaemons
+  become: true
+  roles:
+    - role: bareos_sd
