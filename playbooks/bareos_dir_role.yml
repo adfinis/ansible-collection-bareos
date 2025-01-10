@@ -1,0 +1,7 @@
+---
+
+- name: Run bareos_dir role for directors
+  hosts: directors
+  become: true
+  roles:
+    - role: bareos_dir
