@@ -1,0 +1,4 @@
+{{ ansible_managed | comment }}
+
+[Service]
+Environment="PYTHONPATH={{ _python_path.files[0].path }}"

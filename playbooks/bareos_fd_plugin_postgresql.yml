@@ -1,0 +1,63 @@
+---
+
+##
+# Playbook to work around the pg8000 version limitation on all Debian machines.
+# Sets up a Python3 venv, installs the Python module pg8000 and creates a systemd override
+# for the Bareos-FD service, so Python from the venv is used instead.
+
+- name: Setup
+  hosts: filedaemons
+  become: true
+  gather_facts: true
+  vars:
+    venv_path: /var/lib/bareos/python-bareos
+    override_dir: /etc/systemd/system/bareos-fd.service.d
+
+  tasks:
+
+    - name: Asserts Debian version
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.os_family == "Debian"
+          - ansible_facts.distribution_major_version | int <= 12  # should be fixed in Debian 13
+        fail_msg: >-
+          Playbook is only supported for Debian <= 12
+
+    - name: Setup Python Virtualenv for pg8000
+      ansible.builtin.pip:
+        name: pg8000
+        virtualenv: "{{ venv_path }}"
+      become_user: bareos
+
+    - name: Fetch site-packages directory path from Venv
+      ansible.builtin.find:
+        paths: "{{ venv_path }}"
+        recurse: true
+        file_type: directory
+        patterns: site-packages
+      register: _python_path
+
+    - name: Make sure override dir is present
+      ansible.builtin.file:
+        path: "{{ override_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create bareos-filedaemon.service override
+      ansible.builtin.template:
+        src: files/bareos_fd_override.conf.j2
+        dest: "{{ override_dir }}/override.conf"
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Restart Bareos FD
+
+  handlers:
+    - name: Restart Bareos FD
+      ansible.builtin.service:
+        name: bareos-filedaemon.service
+        state: restarted
+        daemon_reload: true
