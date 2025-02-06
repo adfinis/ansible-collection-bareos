@@ -27,9 +27,10 @@
           }}
       loop: "{{ groups['filedaemons'] }}"
       tags: manage_jobs
-      # if job(s) are defined in host_vars or group_vars, standards will be skipped
       when:
-        - hostvars[item].bareos_fd_jobs is undefined
+        - ansible_limit is undefined or
+          item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
+        - hostvars[item].bareos_fd_jobs is undefined  # let's you set exceptions on group/host_vars level
 
     - name: Add dedicated jobs defined in host_vars
       ansible.builtin.set_fact:
@@ -37,9 +38,10 @@
           {{ _job_list + hostvars[item].bareos_fd_jobs }}
       loop: "{{ groups['filedaemons'] }}"
       tags: manage_jobs
-      # use job(s) from host_vars or group_vars instead
       when:
-        - hostvars[item].bareos_fd_jobs is defined
+        - ansible_limit is undefined or
+          item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
+        - hostvars[item].bareos_fd_jobs is undefined  # let's you set exceptions on group/host_vars level
 
     - name: Register job list
       ansible.builtin.set_fact:

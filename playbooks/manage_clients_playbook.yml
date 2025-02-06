@@ -20,10 +20,6 @@
         - manage_clients
         - manage_clients::setup
   roles:
-    - role: robertdebock.bootstrap  # prepare host for ansible runs
-      tags:
-        - manage_clients
-        - manage_clients::setup
     - role: bareos_repository
       tags:
         - manage_clients
@@ -44,6 +40,9 @@
       delegate_to: "{{ item }}"
       delegate_facts: true
       loop: "{{ groups['filedaemons'] }}"
+      when:
+        - ansible_limit is undefined or
+          item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
       tags:
         - manage_clients
         - manage_clients::deployment
@@ -66,7 +65,9 @@
         - manage_clients
         - manage_clients::deployment
       when:
-        - hostvars[item].bareos_fd_configuration is undefined  # let's you set exceptions on host_vars level
+        - ansible_limit is undefined or
+          item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
+        - hostvars[item].bareos_fd_configuration is undefined  # let's you set exceptions on group/host_vars level
 
     - name: Add Filedaemons to list which have separate host_vars defined
       ansible.builtin.set_fact:
@@ -77,7 +78,9 @@
         - manage_clients
         - manage_clients::deployment
       when:
-        - hostvars[item].bareos_fd_configuration is defined # use host_vars instead and add host to client list
+        - ansible_limit is undefined or
+          item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
+        - hostvars[item].bareos_fd_configuration is undefined  # let's you set exceptions on group/host_vars level
 
     - name: Register client list
       ansible.builtin.set_fact:
