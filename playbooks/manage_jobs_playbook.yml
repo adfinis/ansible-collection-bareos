@@ -41,7 +41,7 @@
       when:
         - ansible_limit is undefined or
           item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
-        - hostvars[item].bareos_fd_jobs is undefined  # let's you set exceptions on group/host_vars level
+        - hostvars[item].bareos_fd_jobs is defined  # let's you set exceptions on group/host_vars level
 
     - name: Register job list
       ansible.builtin.set_fact:
