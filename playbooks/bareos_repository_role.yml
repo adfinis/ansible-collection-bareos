@@ -1,0 +1,7 @@
+---
+
+- name: Run bareos_repository role for all hosts
+  hosts: all
+  become: true
+  roles:
+    - role: bareos_repository
