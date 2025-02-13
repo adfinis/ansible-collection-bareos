@@ -9,6 +9,6 @@ on:
 
 jobs:
   semantic-release:
-    uses: adfinis/github-workflows-bareos/.github/workflows/semantic-release.yaml@v0.1.0
+    uses: adfinis/github-workflows-bareos/.github/workflows/semantic-release.yaml@v0.5.1
     secrets:
       ADFINISBOT_GITHUB_TOKEN: ${{ secrets.ADFINISBOT_GITHUB_TOKEN }}
