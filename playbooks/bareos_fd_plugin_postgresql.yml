@@ -1,57 +1,26 @@
 ---
 
 ##
-# Playbook to work around the pg8000 version limitation on all Debian machines.
-# Sets up a Python3 venv, installs the Python module pg8000 and creates a systemd override
-# for the Bareos-FD service, so Python from the venv is used instead.
+# Playbook to work around the pg8000 version limitation for Distributions that do not offer pg8000 >= 1.16 (See: https://docs.bareos.org/TasksAndConcepts/Plugins.html#prerequisites-for-the-postgresql-plugin)
+# Installs the Python module pg8000 in a newer version via PIP to the Bareos library location in /usr/lib/bareos/plugins/ so it's used automatically.
 
-- name: Setup
+- name: Installs Python pg8000 via PIP to /usr/lib/bareos/plugins
   hosts: filedaemons
   become: true
-  gather_facts: true
-  vars:
-    venv_path: /var/lib/bareos/python-bareos
-    override_dir: /etc/systemd/system/bareos-fd.service.d
-
+  gather_facts: false
   tasks:
-
-    - name: Asserts Debian version
-      ansible.builtin.assert:
-        that:
-          - ansible_facts.os_family == "Debian"
-          - ansible_facts.distribution_major_version | int <= 12  # should be fixed in Debian 13
-        fail_msg: >-
-          Playbook is only supported for Debian <= 12
-
-    - name: Setup Python Virtualenv for pg8000
-      ansible.builtin.pip:
-        name: pg8000
-        virtualenv: "{{ venv_path }}"
-      become_user: bareos
-
-    - name: Fetch site-packages directory path from Venv
-      ansible.builtin.find:
-        paths: "{{ venv_path }}"
-        recurse: true
-        file_type: directory
-        patterns: site-packages
-      register: _python_path
-
-    - name: Make sure override dir is present
+    - name: Create dedicated directory in Bareos Plugin library
       ansible.builtin.file:
-        path: "{{ override_dir }}"
+        name: /usr/lib/bareos/plugins/pg8000
         state: directory
         owner: root
         group: root
         mode: "0755"
 
-    - name: Create bareos-filedaemon.service override
-      ansible.builtin.template:
-        src: files/bareos_fd_override.conf.j2
-        dest: "{{ override_dir }}/override.conf"
-        owner: root
-        group: root
-        mode: "0644"
+    - name: Install Python pg8000 to Bareos Plugin library
+      ansible.builtin.pip:
+        name: pg8000
+        extra_args: "--target /usr/lib/bareos/plugins/pg8000 --exists-action i -q"
       notify:
         - Restart Bareos FD
 
