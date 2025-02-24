@@ -29,24 +29,24 @@
         - manage_clients
         - manage_clients::setup
 
+
+# first the necessary vars from every client in the `filedaemons` group are collected,
+# which are required to deploy the clients with the bareos_dir role.
+# as the Bareos Director is not supposed to be part of any `filedaemons` group,
+# `delegate_to` is used to call the Director with the bareos_dir role, even
+# when it's outside of the Ansible -l/--limit scope.
+#
+# the play uses `run_once` so it's only executed on the first host,
+# which then loops over the `filedaemons` group.
 - name: Deploy Filedaemons on Director with the bareos_dir role
-  hosts: directors
+  hosts: all
+  run_once: true
   become: true
   vars:
     _fd_list: []
   pre_tasks:
-    - name: Gather Ansible facts for all Filedaemons
-      ansible.builtin.setup:
-      delegate_to: "{{ item }}"
-      delegate_facts: true
-      loop: "{{ groups['filedaemons'] }}"
-      when:
-        - ansible_limit is undefined or
-          item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
-      tags:
-        - manage_clients
-        - manage_clients::deployment
 
+    # uses `default(omit)` for optional variables
     - name: Create list of Filedaemons to deploy on Director
       ansible.builtin.set_fact:
         _fd_list: >-
@@ -54,17 +54,20 @@
             'name': item,
             'address': client_defaults.address,
             'password': client_defaults.password,
-            'maximum_concurrent_jobs': client_defaults.maximum_concurrent_jobs,
-            'connection_from_director_to_client': client_defaults.connection_from_dir,
-            'connection_from_client_to_director': client_defaults.connection_from_fd,
-            'heartbeat': client_defaults.heartbeat,
-            'enabled': client_defaults.enabled}]
+            'maximum_concurrent_jobs': client_defaults.maximum_concurrent_jobs | default(omit),
+            'connection_from_director_to_client': client_defaults.connection_from_dir | default(omit),
+            'connection_from_client_to_director': client_defaults.connection_from_fd | default(omit),
+            'heartbeat': client_defaults.heartbeat | default(omit),
+            'enabled': client_defaults.enabled | default(omit) }]
           }}
       loop: "{{ groups['filedaemons'] }}"
       tags:
         - manage_clients
         - manage_clients::deployment
       when:
+        - client_defaults is defined
+        - client_defaults.address is defined
+        - client_defaults.password is defined
         - ansible_limit is undefined or
           item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
         - hostvars[item].bareos_fd_configuration is undefined  # let's you set exceptions on group/host_vars level
@@ -81,6 +84,8 @@
         - ansible_limit is undefined or
           item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
         - hostvars[item].bareos_fd_configuration is defined  # let's you set exceptions on group/host_vars level
+        - hostvars[item].bareos_fd_configuration.name is defined
+        - hostvars[item].bareos_fd_configuration.password is defined
 
     - name: Register client list
       ansible.builtin.set_fact:
@@ -89,8 +94,11 @@
         - manage_clients
         - manage_clients::deployment
 
-  roles:
-    - role: bareos_dir
+  tasks:
+    - name: Delegate bareos_dir role to Director
+      ansible.builtin.import_role:
+        name: bareos_dir
+      delegate_to: "{{ groups['directors'][0] }}"  # workaround to call the director
       tags:
         - manage_clients
         - manage_clients::deployment

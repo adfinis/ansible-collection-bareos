@@ -6,12 +6,26 @@
   gather_facts: true
   tags: always
 
+
+# first the necessary vars from every client in the `filedaemons` group are collected,
+# which are required to deploy the job(s) for each client on the Bareos Director with the bareos_dir role.
+# as the Bareos Director is not supposed to be part of any `filedaemons` group,
+# `delegate_to` is used to call the Director with the bareos_dir role, even
+# when it's outside of the Ansible -l/--limit scope.
+#
+# the play uses `run_once` so it's only executed on the first host,
+# which then loops over the `filedaemons` group.
+
 - name: Create jobs on Director for every client in host_group filedaemons
-  hosts: directors
+  hosts: all
+  run_once: true
   become: true
   vars:
     _job_list: []
+
   pre_tasks:
+
+    # uses `default(omit)` for optional variables
     - name: Create job list for all FDs with defined standard values (group_vars)
       ansible.builtin.set_fact:
         _job_list: >-
@@ -19,15 +33,22 @@
             'name': job_defaults.name+'_'+item,
             'client': item,
             'pool': job_defaults.pool,
-            'type': job_defaults.type,
-            'messages': job_defaults.messages,
-            'jobdefs': job_defaults.jobdefs,
-            'storage': job_defaults.storage,
-            'schedule': job_defaults.schedule}]
+            'full_backup_pool': job_defaults.full_backup_pool | default(omit),
+            'differential_backup_pool': job_defaults.differential_backup_pool | default(omit),
+            'incremental_backup_pool': job_defaults.incremental_backup_pool | default(omit),
+            'max_full_interval': job_defaults.max_full_interval | default(omit),
+            'max_diff_interval': job_defaults.max_diff_interval | default(omit),
+            'type': job_defaults.type | default(omit),
+            'messages': job_defaults.messages | default(omit),
+            'jobdefs': job_defaults.jobdefs | default(omit),
+            'storage': job_defaults.storage | default(omit),
+            'schedule': job_defaults.schedule | default(omit) }]
           }}
       loop: "{{ groups['filedaemons'] }}"
       tags: manage_jobs
       when:
+        - job_defaults is defined
+        - job_defaults.pool is defined
         - ansible_limit is undefined or
           item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
         - hostvars[item].bareos_fd_jobs is undefined  # let's you set exceptions on group/host_vars level
@@ -48,6 +69,10 @@
         bareos_dir_jobs: "{{ _job_list }}"
       tags: manage_jobs
 
-  roles:
-    - role: bareos_dir
-      tags: manage_jobs
+  tasks:
+    - name: Delegate bareos_dir role to Director
+      ansible.builtin.import_role:
+        name: bareos_dir
+      delegate_to: "{{ groups['directors'][0] }}"  # workaround to call the director
+      tags:
+        - manage_jobs
