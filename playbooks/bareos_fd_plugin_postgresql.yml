@@ -1,5 +1,4 @@
 ---
-
 ##
 # Playbook to work around the pg8000 version limitation for Distributions that do not offer pg8000 >= 1.16 (See: https://docs.bareos.org/TasksAndConcepts/Plugins.html#prerequisites-for-the-postgresql-plugin)
 # Installs the Python module pg8000 in a newer version via PIP to the Bareos library location in /usr/lib/bareos/plugins/ so it's used automatically.
@@ -16,6 +15,11 @@
         owner: root
         group: root
         mode: "0755"
+
+    - name: Ensure pip is installed
+      ansible.builtin.package:
+        name: python3-pip
+        state: present
 
     - name: Install Python pg8000 to Bareos Plugin library
       ansible.builtin.pip:
