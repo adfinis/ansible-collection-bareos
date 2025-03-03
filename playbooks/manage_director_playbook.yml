@@ -1,0 +1,18 @@
+---
+
+- name: Call bareos_dir role on Director outside of -l/--limit scope
+  hosts: all 
+  become: true
+  gather_facts: false
+  run_once: true
+  pre_tasks:
+    - name: Fetch facts from director
+      ansible.builtin.setup:
+      delegate_to: "{{ groups['directors'][0] }}"  # workaround to call the director
+      delegate_facts: false  # keep necessary facts on director
+
+  tasks:
+    - name: Delegate bareos_dir role to Director
+      ansible.builtin.import_role:
+        name: bareos_dir
+      delegate_to: "{{ groups['directors'][0] }}"  # workaround to call the director
