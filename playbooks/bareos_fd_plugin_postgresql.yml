@@ -8,14 +8,6 @@
   become: true
   gather_facts: false
   tasks:
-    - name: Create dedicated directory in Bareos Plugin library
-      ansible.builtin.file:
-        name: /usr/lib/bareos/plugins/pg8000
-        state: directory
-        owner: root
-        group: root
-        mode: "0755"
-
     - name: Ensure pip is installed
       ansible.builtin.package:
         name: python3-pip
@@ -24,13 +16,4 @@
     - name: Install Python pg8000 to Bareos Plugin library
       ansible.builtin.pip:
         name: pg8000
-        extra_args: "--target /usr/lib/bareos/plugins/pg8000 --exists-action i -q"
-      notify:
-        - Restart Bareos FD
-
-  handlers:
-    - name: Restart Bareos FD
-      ansible.builtin.service:
-        name: bareos-filedaemon.service
-        state: restarted
-        daemon_reload: true
+        extra_args: "--target /usr/lib/bareos/plugins/ --exists-action i -q"
