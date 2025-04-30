@@ -77,8 +77,8 @@ The following playbooks are supported:
 Playbook will setup the Bareos Filedaemon on all clients in the host group `filedaemons` and will deploy a Bareos client resource with the settings from `client_defaults` on the Director for each host.
 
 Supported tags:
-    * `manage_clients::setup` (Only sets up dhe FDs, without adding them on the Director)
-    * `mange_clients::deployment` (Deploys the configuration for each FD on the Director)
+  - `manage_clients::setup` (Only sets up dhe FDs, without adding them on the Director)
+  - `mange_clients::deployment` (Deploys the configuration for each FD on the Director)
 
 ``` bash
 ansible-playbook adfinis.bareos.manage_clients_playbook -i inventory
@@ -120,3 +120,28 @@ Playbook fetches the individual Filedaemon encryption keys, so that they can be 
 ``` bash
 ansible-playbook adfinis.bareos.fetch_encryption_keys -i inventory --check
 ```
+
+### adfinis.bareos.manage_director_playbook
+Can be used to call bareos_dir role in the scope of a client group, without the need to add the director to the client group.
+Requires `-l/--limit` parameter.
+
+``` bash
+ansible-playbook adfinis.bareos.manage_director_playbook -i inventory --limit webservers --check
+```
+
+### adfinis.bareos.remove_clients_playbook
+Can be used to remove the bareos backup client and files from a client and then disable the client resource(s) on the director
+
+Disabled client/job resources on the director need to be cleaned up manually!
+
+Clients need to be part of the group filedaemons to be targeted by the playbook.
+Make sure to call the playbook with -l/--limit so not all clients are removed. Always use check mode first!
+
+``` bash
+ansible-playbook adfinis.bareos.remove_clients_playbook -i inventory --limit removal-client --check
+```
+
+Supported tags:
+  - `cleanup_clients` just uninstalls the bareos FD client without touching the director
+  - `cleanup_director` just disables all client resources within the ansible_play_hosts scope
+  - `cleanup_repo` just removes all bareos repository files on the client
