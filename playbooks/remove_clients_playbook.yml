@@ -1,0 +1,81 @@
+---
+
+# can be used to remove the bareos backup client and files from a client
+# and then disable the client resource(s) on the director
+#
+# disabled client/job resources on the director need to be cleaned up manually!
+#
+# clients need to be part of the group filedaemons to be targeted by the playbook.
+# make sure to call the playbook with -l/--limit so not all clients are removed.
+# always use check mode first!
+#
+# tags:
+#   - "cleanup_clients" just uninstalls the bareos FD client without touching the director
+#   - "cleanup_director" just disables all client resources within the ansible_play_hosts scope
+#   - "cleanup_repo" just removes all bareos repository files on the client
+#
+
+- name: Remove specified hosts and uninstall bareos filedaemon
+  hosts: filedaemons  # make sure to use -l/--limit!
+  gather_facts: false
+  become: true
+  tags:
+    - cleanup_clients
+  tasks:
+    - name: Stop and disable bareos-fd service
+      ansible.builtin.service:
+        name: bareos-filedaemon
+        state: stopped
+        enabled: false
+      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Uninstall bareos packages
+      ansible.builtin.package:
+        name: bareos*
+        state: absent
+      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Search for bareos repository files
+      ansible.builtin.find:
+        paths: /etc
+        recurse: true
+        patterns:  # taken from adfinis.bareos.bareos_repository role
+          - bareos
+          - bareos.gpg
+          - bareos.list
+          - download_bareos_com.conf
+      register: _repo_files
+      tags:
+        - cleanup_repo
+
+    - name: Cleanup files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ _repo_files.files }}"
+      tags:
+        - cleanup_repo
+
+- name: Cleanup client resource from bareos director
+  hosts: all
+  run_once: true
+  become: true
+  vars:
+    bareos_dir_clients: []
+  tags:
+    - cleanup_director
+  pre_tasks:
+    - name: Create disabled client list to disable clients on director
+      ansible.builtin.set_fact:
+        bareos_dir_clients: >-
+          {{ bareos_dir_clients + [{
+            'name': item,
+            'enabled': false,
+            'address': hostvars[item].bareos_fd_configuration.address | default(''),
+            'password': hostvars[item].bareos_fd_configuration.password | default('') }] }}
+      loop: "{{ ansible_play_hosts }}"
+  tasks:
+    - name: Call director role to disable clients
+      ansible.builtin.import_role:
+        name: adfinis.bareos.bareos_dir
+      delegate_to: "{{ groups['directors'][0] }}"  # workaround to call the director
