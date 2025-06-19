@@ -64,6 +64,31 @@
           item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
         - hostvars[item].bareos_fd_jobs is defined  # let's you set exceptions on group/host_vars level
 
+    # workaround to generate additional VirtualFull jobs per host, when enabled.
+    # based on Bareos Always Incremental Backup Scheme:
+    # https://docs.bareos.org/TasksAndConcepts/AlwaysIncrementalBackupScheme.html#virtual-full-jobs
+    #
+    # requires an existing JobDef resource that cover the settings from
+    # https://docs.bareos.org/TasksAndConcepts/AlwaysIncrementalBackupScheme.html#id14
+    # the name of the Fileset can be set with `virtual_full_jobdef`
+    - name: Add additional VirtualFull job when enabled
+      ansible.builtin.set_fact:
+        _job_list: >-
+          {{ _job_list + [{
+            'name': 'Job_'+item+'_Virtual_Longterm_Full',
+            'client': item,
+            'pool': job_defaults.pool,
+            'messages': job_defaults.messages | default(omit),
+            'jobdefs': virtual_full_jobdef | default('JobDef_VirtualFull'),
+            'storage': job_defaults.storage | default(omit),
+            'schedule': job_defaults.schedule | default(omit) }]
+          }}
+      loop: "{{ groups['filedaemons'] }}"
+      tags: manage_jobs
+      when:
+        - item.virtual_full_job
+
+
     - name: Register job list
       ansible.builtin.set_fact:
         bareos_dir_jobs: "{{ _job_list }}"
