@@ -2,6 +2,10 @@
 
 A collection of roles to install and configure [Bareos](https://www.bareos.com).
 
+
+## Update standalone role(s) and trigger Dependabot manually
+Insights > Dependency graph > Dependabot > (.gitmodules) Recent update jobs > Check for updates
+
 ## Using roles in this collection.
 
 1. Install the collection:
