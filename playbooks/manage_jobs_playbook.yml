@@ -42,6 +42,11 @@
             'messages': job_defaults.messages | default(omit),
             'jobdefs': job_defaults.jobdefs | default(omit),
             'storage': job_defaults.storage | default(omit),
+            'always_incremental': job_defaults.always_incremental | default(omit),
+            'always_incremental_job_retention': job_defaults.always_incremental_job_retention | default(omit),
+            'always_incremental_keep_number': job_defaults.always_incremental_keep_number | default(omit),
+            'always_incremental_max_full_age': job_defaults.always_incremental_max_full_age | default(omit),
+            'client_runbeforejob': job_defaults.client_runbeforejob | default(omit),
             'schedule': job_defaults.schedule | default(omit) }]
           }}
       loop: "{{ groups['filedaemons'] }}"
