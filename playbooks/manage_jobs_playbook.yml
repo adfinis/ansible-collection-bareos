@@ -56,7 +56,13 @@
         - job_defaults.pool is defined
         - ansible_limit is undefined or
           item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
-        - hostvars[item].bareos_fd_jobs is undefined  # let's you set exceptions on group/host_vars level
+
+        # let's you set exceptions on group/host_vars level.
+        # when bareos_fd_jobs_append is set to true (default is false) on group/host level,
+        # then the additional jobs in the list 'bareos_fd_jobs' are appended, rather
+        # than them overwriting the default job set.
+        - hostvars[item].bareos_fd_jobs is undefined or
+          hostvars[item].bareos_fd_jobs_append | default(false)  # let's you set exceptions on group/host_vars level
 
     - name: Add dedicated jobs defined in host_vars
       ansible.builtin.set_fact:
