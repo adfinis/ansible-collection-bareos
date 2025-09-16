@@ -52,9 +52,9 @@
       loop: "{{ groups['filedaemons'] }}"
       tags: manage_jobs
       when:
-        - job_defaults is defined
-        - job_defaults.pool is defined
         - item in ansible_play_hosts  # allows limiting to filedaemons in-scope of --limit-l
+        - hostvars[item].job_defaults is defined  # recommended to set job_defaults in group_vars/all
+        - hostvars[item].job_defaults.pool is defined
 
         # let's you set exceptions on group/host_vars level.
         # when bareos_fd_jobs_append is set to true (default is false) on group/host level,
