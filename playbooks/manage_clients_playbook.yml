@@ -68,8 +68,7 @@
         - client_defaults is defined
         - client_defaults.address is defined
         - client_defaults.password is defined
-        - ansible_limit is undefined or
-          item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
+        - item in ansible_play_hosts  # allows limiting to filedaemons in-scope of --limit-l
         - hostvars[item].bareos_fd_configuration is undefined  # let's you set exceptions on group/host_vars level
 
     - name: Add Filedaemons to list which have separate host_vars defined
@@ -81,8 +80,7 @@
         - manage_clients
         - manage_clients::deployment
       when:
-        - ansible_limit is undefined or
-          item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
+        - item in ansible_play_hosts  # allows limiting to filedaemons in-scope of --limit-l
         - hostvars[item].bareos_fd_configuration is defined  # let's you set exceptions on group/host_vars level
         - hostvars[item].bareos_fd_configuration.name is defined
         - hostvars[item].bareos_fd_configuration.password is defined

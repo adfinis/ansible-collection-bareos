@@ -54,8 +54,7 @@
       when:
         - job_defaults is defined
         - job_defaults.pool is defined
-        - ansible_limit is undefined or
-          item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
+        - item in ansible_play_hosts  # allows limiting to filedaemons in-scope of --limit-l
 
         # let's you set exceptions on group/host_vars level.
         # when bareos_fd_jobs_append is set to true (default is false) on group/host level,
@@ -71,8 +70,7 @@
       loop: "{{ groups['filedaemons'] }}"
       tags: manage_jobs
       when:
-        - ansible_limit is undefined or
-          item in groups[ansible_limit]  # only use filedaemons in-scope of --limit/-l
+        - item in ansible_play_hosts  # allows limiting to filedaemons in-scope of --limit-l
         - hostvars[item].bareos_fd_jobs is defined  # let's you set exceptions on group/host_vars level
 
     - name: Register job list
