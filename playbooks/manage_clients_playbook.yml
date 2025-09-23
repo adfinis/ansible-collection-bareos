@@ -52,13 +52,13 @@
         _fd_list: >-
           {{ _fd_list + [{
             'name': item,
-            'address': client_defaults.address,
-            'password': client_defaults.password,
-            'maximum_concurrent_jobs': client_defaults.maximum_concurrent_jobs | default(omit),
-            'connection_from_director_to_client': client_defaults.connection_from_dir | default(omit),
-            'connection_from_client_to_director': client_defaults.connection_from_fd | default(omit),
-            'heartbeat': client_defaults.heartbeat | default(omit),
-            'enabled': client_defaults.enabled | default(omit) }]
+            'address': hostvars[item].client_defaults.address,
+            'password': hostvars[item].client_defaults.password,
+            'maximum_concurrent_jobs': hostvars[item].client_defaults.maximum_concurrent_jobs | default(omit),
+            'connection_from_director_to_client': hostvars[item].client_defaults.connection_from_dir | default(omit),
+            'connection_from_client_to_director': hostvars[item].client_defaults.connection_from_fd | default(omit),
+            'heartbeat': hostvars[item].client_defaults.heartbeat | default(omit),
+            'enabled': hostvars[item].client_defaults.enabled | default(omit) }]
           }}
       loop: "{{ groups['filedaemons'] }}"
       tags:

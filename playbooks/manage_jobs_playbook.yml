@@ -30,24 +30,24 @@
       ansible.builtin.set_fact:
         _job_list: >-
           {{ _job_list + [{
-            'name': job_defaults.name+'_'+item,
+            'name': hostvars[item].job_defaults.name+'_'+item,
             'client': item,
-            'pool': job_defaults.pool,
-            'full_backup_pool': job_defaults.full_backup_pool | default(omit),
-            'differential_backup_pool': job_defaults.differential_backup_pool | default(omit),
-            'incremental_backup_pool': job_defaults.incremental_backup_pool | default(omit),
-            'max_full_interval': job_defaults.max_full_interval | default(omit),
-            'max_diff_interval': job_defaults.max_diff_interval | default(omit),
-            'type': job_defaults.type | default(omit),
-            'messages': job_defaults.messages | default(omit),
-            'jobdefs': job_defaults.jobdefs | default(omit),
-            'storage': job_defaults.storage | default(omit),
-            'always_incremental': job_defaults.always_incremental | default(omit),
-            'always_incremental_job_retention': job_defaults.always_incremental_job_retention | default(omit),
-            'always_incremental_keep_number': job_defaults.always_incremental_keep_number | default(omit),
-            'always_incremental_max_full_age': job_defaults.always_incremental_max_full_age | default(omit),
-            'client_runbeforejob': job_defaults.client_runbeforejob | default(omit),
-            'schedule': job_defaults.schedule | default(omit) }]
+            'pool': hostvars[item].job_defaults.pool,
+            'full_backup_pool': hostvars[item].job_defaults.full_backup_pool | default(omit),
+            'differential_backup_pool': hostvars[item].job_defaults.differential_backup_pool | default(omit),
+            'incremental_backup_pool': hostvars[item].job_defaults.incremental_backup_pool | default(omit),
+            'max_full_interval': hostvars[item].job_defaults.max_full_interval | default(omit),
+            'max_diff_interval': hostvars[item].job_defaults.max_diff_interval | default(omit),
+            'type': hostvars[item].job_defaults.type | default(omit),
+            'messages': hostvars[item].job_defaults.messages | default(omit),
+            'jobdefs': hostvars[item].job_defaults.jobdefs | default(omit),
+            'storage': hostvars[item].job_defaults.storage | default(omit),
+            'always_incremental': hostvars[item].job_defaults.always_incremental | default(omit),
+            'always_incremental_job_retention': hostvars[item].job_defaults.always_incremental_job_retention | default(omit),
+            'always_incremental_keep_number': hostvars[item].job_defaults.always_incremental_keep_number | default(omit),
+            'always_incremental_max_full_age': hostvars[item].job_defaults.always_incremental_max_full_age | default(omit),
+            'client_runbeforejob': hostvars[item].job_defaults.client_runbeforejob | default(omit),
+            'schedule': hostvars[item].job_defaults.schedule | default(omit) }]
           }}
       loop: "{{ groups['filedaemons'] }}"
       tags: manage_jobs
