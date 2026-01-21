@@ -71,8 +71,8 @@
           {{ bareos_dir_clients + [{
             'name': item,
             'enabled': false,
-            'address': hostvars[item].bareos_fd_configuration.address | default(''),
-            'password': hostvars[item].bareos_fd_configuration.password | default('') }] }}
+            'address': hostvars[item].bareos_fd_configuration.address | default(hostvars[item].client_defaults.address | default('')),
+            'password': hostvars[item].bareos_fd_configuration.password | default(hostvars[item].client_defaults.password | default('PlaceholderPass')) }] }}
       loop: "{{ ansible_play_hosts }}"
   tasks:
     - name: Call director role to disable clients
