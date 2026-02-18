@@ -19,12 +19,20 @@
       tags:
         - manage_clients
         - manage_clients::setup
-  roles:
-    - role: bareos_repository
+  tasks:
+    - name: Execute bareos_repository role
+      ansible.builtin.import_role:
+        name: bareos_repository
       tags:
         - manage_clients
         - manage_clients::setup
-    - role: bareos_fd
+
+    - name: Flush handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: Execute bareos_fd role
+      ansible.builtin.import_role:
+        name: bareos_fd
       tags:
         - manage_clients
         - manage_clients::setup
