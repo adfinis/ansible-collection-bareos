@@ -9,6 +9,6 @@ on:
 
 jobs:
   deploy:
-    uses: adfinis/github-workflows-bareos/.github/workflows/ansible-collection.yaml@eedff15b52be3c117bd5f7a28492494596399311 # v0.8.0
+    uses: adfinis/github-workflows-bareos/.github/workflows/ansible-collection.yaml@e5f6f4f45de85bb92d71713f9c539abf424528ac # v0.10.1
     secrets:
       galaxy_api_key: ${{ secrets.GALAXY_API_KEY }}
